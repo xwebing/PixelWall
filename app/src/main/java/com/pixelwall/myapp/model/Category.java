@@ -1,4 +1,4 @@
-package com.pixelwall.myapp.model;
+package com.pixelwall.pixelwall.model;
 
 public class Category {
     private String name;

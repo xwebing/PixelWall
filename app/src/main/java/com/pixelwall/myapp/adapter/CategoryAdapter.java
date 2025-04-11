@@ -1,4 +1,4 @@
-package com.pixelwall.myapp.adapter;
+package com.pixelwall.pixelwall.adapter;
 
 import android.view.LayoutInflater;
 import android.view.View;
@@ -8,8 +8,8 @@ import android.widget.TextView;
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
-import com.pixelwall.myapp.R;
-import com.pixelwall.myapp.model.Category;
+import com.pixelwall.pixelwall.R;
+import com.pixelwall.pixelwall.model.Category;
 
 import java.util.ArrayList;
 import java.util.List;

@@ -1,4 +1,4 @@
-package com.pixelwall.myapp;
+package com.pixelwall.pixelwall;
 
 import android.app.WallpaperManager;
 import android.content.Context;
@@ -11,6 +11,7 @@ import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.Toast;
 
+import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
 
@@ -34,39 +35,36 @@ public class WallpaperDetailActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_wallpaper_detail);
 
-        wallpaperUrl = getIntent().getStringExtra("wallpaper_url");
-        wallpaperId = getIntent().getStringExtra("wallpaper_id");
-
-        initializeViews();
-        setupToolbar();
-        loadWallpaper();
-        setupClickListeners();
-    }
-
-    private void initializeViews() {
-        detailWallpaperImage = findViewById(R.id.detailWallpaperImage);
-        setWallpaperButton = findViewById(R.id.setWallpaperButton);
-        downloadButton = findViewById(R.id.downloadButton);
-    }
-
-    private void setupToolbar() {
+        // 设置Toolbar
         Toolbar toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
         if (getSupportActionBar() != null) {
-            getSupportActionBar().setDisplayHomeAsUpEnabled(true);
-            getSupportActionBar().setDisplayShowTitleEnabled(false);
+            getSupportActionBar().setDisplayHomeAsUpEnabled(true); // 显示返回箭头
+            getSupportActionBar().setDisplayShowHomeEnabled(true);
         }
-    }
 
-    private void loadWallpaper() {
+        // 设置返回箭头点击事件
+        toolbar.setNavigationOnClickListener(v -> onBackPressed());
+
+        // 获取传递的数据
+        wallpaperUrl = getIntent().getStringExtra("wallpaper_url");
+        wallpaperId = getIntent().getStringExtra("wallpaper_id");
+
+        // 加载图片
+        detailWallpaperImage = findViewById(R.id.wallpaperImage);
         Glide.with(this)
                 .load(wallpaperUrl)
+                .placeholder(R.drawable.placeholder) // 占位图
+                .error(R.drawable.error) // 错误图
                 .into(detailWallpaperImage);
-    }
 
-    private void setupClickListeners() {
-        setWallpaperButton.setOnClickListener(v -> setWallpaper());
-        downloadButton.setOnClickListener(v -> downloadWallpaper());
+        // 设置壁纸按钮
+        setWallpaperButton = findViewById(R.id.setWallpaperButton);
+        setWallpaperButton.setOnClickListener(v -> setWallpaper(wallpaperUrl));
+
+        // 下载壁纸按钮
+        downloadButton = findViewById(R.id.downloadWallpaperButton);
+        downloadButton.setOnClickListener(v -> downloadWallpaper(wallpaperUrl));
     }
 
     @Override
@@ -78,46 +76,60 @@ public class WallpaperDetailActivity extends AppCompatActivity {
         return super.onOptionsItemSelected(item);
     }
 
-    private void setWallpaper() {
+    private void setWallpaper(String imageUrl) {
         new Thread(() -> {
             try {
-                URL url = new URL(wallpaperUrl);
-                InputStream inputStream = url.openStream();
-                Bitmap bitmap = BitmapFactory.decodeStream(inputStream);
-                inputStream.close();
+                // 下载图片并设置为壁纸
+                Bitmap bitmap = Glide.with(this)
+                        .asBitmap()
+                        .load(imageUrl)
+                        .submit()
+                        .get();
 
                 WallpaperManager wallpaperManager = WallpaperManager.getInstance(this);
                 wallpaperManager.setBitmap(bitmap);
 
                 runOnUiThread(() -> Toast.makeText(this, "壁纸设置成功", Toast.LENGTH_SHORT).show());
-            } catch (IOException e) {
+            } catch (Exception e) {
                 e.printStackTrace();
                 runOnUiThread(() -> Toast.makeText(this, "壁纸设置失败", Toast.LENGTH_SHORT).show());
             }
         }).start();
     }
 
-    private void downloadWallpaper() {
-        new Thread(() -> {
-            try {
-                URL url = new URL(wallpaperUrl);
-                InputStream inputStream = url.openStream();
-                Bitmap bitmap = BitmapFactory.decodeStream(inputStream);
-                inputStream.close();
+    private void downloadWallpaper(String imageUrl) {
+        new AlertDialog.Builder(this)
+                .setTitle("下载壁纸")
+                .setMessage("是否下载此壁纸？")
+                .setPositiveButton("是", (dialog, which) -> {
+                    new Thread(() -> {
+                        try {
+                            // 下载图片
+                            Bitmap bitmap = Glide.with(this)
+                                    .asBitmap()
+                                    .load(imageUrl)
+                                    .submit()
+                                    .get();
 
-                String fileName = "wallpaper_" + wallpaperId + ".jpg";
-                File directory = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS);
-                File file = new File(directory, fileName);
+                            // 保存图片到指定目录
+                            File directory = new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES), "Wallpapers");
+                            if (!directory.exists()) {
+                                directory.mkdirs();
+                            }
 
-                FileOutputStream outputStream = new FileOutputStream(file);
-                bitmap.compress(Bitmap.CompressFormat.JPEG, 100, outputStream);
-                outputStream.close();
+                            File file = new File(directory, "wallpaper_" + System.currentTimeMillis() + ".jpg");
+                            try (FileOutputStream out = new FileOutputStream(file)) {
+                                bitmap.compress(Bitmap.CompressFormat.JPEG, 100, out);
+                            }
 
-                runOnUiThread(() -> Toast.makeText(this, "壁纸已保存到下载目录", Toast.LENGTH_SHORT).show());
-            } catch (IOException e) {
-                e.printStackTrace();
-                runOnUiThread(() -> Toast.makeText(this, "下载失败", Toast.LENGTH_SHORT).show());
-            }
-        }).start();
+                            runOnUiThread(() -> Toast.makeText(this, "壁纸下载成功：" + file.getAbsolutePath(), Toast.LENGTH_SHORT).show());
+                        } catch (Exception e) {
+                            e.printStackTrace();
+                            runOnUiThread(() -> Toast.makeText(this, "壁纸下载失败", Toast.LENGTH_SHORT).show());
+                        }
+                    }).start();
+                })
+                .setNegativeButton("否", null)
+                .show();
     }
 } 

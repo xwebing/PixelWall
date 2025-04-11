@@ -3,7 +3,7 @@
     android:layout_width="100dp"
     android:layout_height="200dp"
     android:layout_margin="4dp"
-    app:cardCornerRadius="8dp"
+    app:cardCornerRadius="4dp"
     app:cardElevation="4dp"
     app:layout_constraintWidth_percent="0.33">
 
@@ -11,6 +11,7 @@
         android:id="@+id/wallpaperImage"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
+        android:contentDescription="@string/todo"
         android:scaleType="centerCrop" />
 
 </androidx.cardview.widget.CardView>
