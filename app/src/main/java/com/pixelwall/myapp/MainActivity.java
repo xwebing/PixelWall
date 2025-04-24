@@ -4,6 +4,7 @@ import android.annotation.SuppressLint;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
+import android.util.Log;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
@@ -18,8 +19,15 @@ import com.pixelwall.pixelwall.adapter.WallpaperAdapter;
 import com.pixelwall.pixelwall.model.Category;
 import com.pixelwall.pixelwall.model.Wallpaper;
 
+import java.io.BufferedReader;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.net.HttpURLConnection;
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
+
+import org.json.JSONObject;
 
 public class MainActivity extends AppCompatActivity implements CategoryAdapter.OnCategoryClickListener, WallpaperAdapter.OnWallpaperClickListener {
     private RecyclerView categoryRecyclerView;
@@ -99,10 +107,13 @@ public class MainActivity extends AppCompatActivity implements CategoryAdapter.O
         try {
             categories = new ArrayList<>();
             categories.add(new Category("自然", "nature"));
-            categories.add(new Category("城市", "city"));
-            categories.add(new Category("抽象", "abstract"));
+            categories.add(new Category("旅行", "travel"));
+            categories.add(new Category("电影", "film"));
+            categories.add(new Category("人物", "people"));
             categories.add(new Category("动物", "animals"));
-            categories.add(new Category("建筑", "architecture"));
+            categories.add(new Category("时尚", "fashion-beauty"));
+            categories.add(new Category("食品饮料", "food-drink"));
+            categories.add(new Category("纹理图案", "textures-patterns"));
             categoryAdapter.setCategories(categories);
         } catch (Exception e) {
             e.printStackTrace();
@@ -121,8 +132,6 @@ public class MainActivity extends AppCompatActivity implements CategoryAdapter.O
         }
     }
 
-
-
     private void loadMoreWallpapers() {
         if (isLoading) return; // 如果正在加载，则直接返回
         isLoading = true;
@@ -131,10 +140,43 @@ public class MainActivity extends AppCompatActivity implements CategoryAdapter.O
             try {
                 List<Wallpaper> newWallpapers = new ArrayList<>();
                 for (int i = 0; i < 9; i++) {
-                    int imageId = 1000 + (currentPage - 1) * 9 + i;
-                    // 使用静态随机图片，seed为imageId
-                    @SuppressLint("DefaultLocale") String imageUrl = String.format("https://picsum.photos/seed/%d/800/600", imageId);
-                    newWallpapers.add(new Wallpaper(String.valueOf(imageId), imageUrl, 800, 600));
+                    // 调用Unsplash API获取随机图片
+//                    String apiUrl = "https://api.unsplash.com/photos?client_id=hkzmgmjnKzYBWh2e5NC4WfijMDIwEYZulyF-E6DSk7s&query=" + currentCategoryId;
+//                    URL url = new URL(apiUrl);
+//                    HttpURLConnection connection = (HttpURLConnection) url.openConnection();
+//                    connection.setRequestMethod("GET");
+//                    connection.setRequestProperty("Authorization", "Client-ID " + "hkzmgmjnKzYBWh2e5NC4WfijMDIwEYZulyF-E6DSk7s");
+//                    connection.connect();
+//
+//                    int responseCode = connection.getResponseCode();
+//                    Log.d("MainActivity111", "API Response: " + responseCode);
+//
+//
+//                    InputStream inputStream = connection.getInputStream();
+//                    BufferedReader reader = new BufferedReader(new InputStreamReader(inputStream));
+//                    StringBuilder response = new StringBuilder();
+//
+//                    String line;
+//                    while ((line = reader.readLine()) != null) {
+//                        response.append(line);
+//                    }
+//                    reader.close();
+//                    inputStream.close();
+//
+//                    // 解析JSON响应
+//                    JSONObject jsonObject = new JSONObject(response.toString());
+//                    String imageUrl = jsonObject.getJSONObject("urls").getString("regular");
+//                    String imageId = jsonObject.getString("id");
+//                    Log.d("MainActivity", "API Response: " + response.toString());
+
+                //    newWallpapers.add(new Wallpaper(imageId, imageUrl, 800, 600));
+                    newWallpapers.add(new Wallpaper(
+                        "id_" + i,
+                        "https://picsum.photos/id/"+(1000 + i) + "/640/1136",
+                        800,
+                        600
+                    ));
+                    
                 }
 
                 runOnUiThread(() -> {
